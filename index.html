@@ -4,186 +4,240 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reserva para o 12</title>
+    <!-- 1. Tailwind CSS (para o estilo) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. React (a biblioteca para a aplicação) -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!-- 3. Babel (para o navegador entender o código React/JSX) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- 4. Google Fonts (para uma fonte mais bonita) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Animação de fade-in */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-50">
 
-    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md mx-auto">
+    <!-- O React vai renderizar a aplicação dentro desta div -->
+    <div id="root"></div>
 
-        <!-- Passo 1: Formulário Inicial -->
-        <div id="form-step" class="fade-in">
-            <div class="text-center mb-6">
-                <h1 class="text-3xl font-bold text-gray-800">Almoço no 12? 🍽️</h1>
-                <p class="text-gray-500 mt-2">O Rapha precisa saber quem vai para fazer a reserva.</p>
+    <!-- 5. Código da Aplicação (React + Firebase) -->
+    <script type="text/babel">
+        // Desestruturando funções do React para usar no código
+        const { useState, useEffect } = React;
+        
+        // --- Componentes da UI ---
+        const Attendee = ({ name, id, onRemove }) => (
+            <div className="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm transition-transform transform hover:scale-105">
+                <span className="text-gray-700">{name}</span>
+                <button onClick={() => onRemove(id)} className="text-red-400 hover:text-red-600 font-bold text-xl">&times;</button>
             </div>
-            
-            <div class="mb-6">
-                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Qual o seu nome?</label>
-                <input type="text" id="name" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Ex: João Silva">
-                <p id="name-error" class="text-red-500 text-sm mt-1 hidden">Por favor, digite seu nome.</p>
-            </div>
+        );
 
-            <div class="flex flex-col space-y-3">
-                 <button id="confirm-button" class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    ✅ Sim, eu vou!
-                </button>
-                 <button id="decline-button" class="w-full bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition">
-                    ❌ Não, hoje não
-                </button>
-            </div>
-        </div>
+        // Componente principal da aplicação
+        function App() {
+            const [name, setName] = useState('');
+            const [attendees, setAttendees] = useState([]);
+            const [isLoading, setIsLoading] = useState(true);
+            const [error, setError] = useState('');
+            const [db, setDb] = useState(null);
 
-        <!-- Passo 2: Confirmação e Envio -->
-        <div id="confirmation-step" class="hidden fade-in">
-            <div class="text-center">
-                <h2 class="text-2xl font-bold text-gray-800">Beleza, confirmado!</h2>
-                <p class="text-gray-500 mt-2">Sua mensagem para o Rapha está pronta. É só clicar para enviar ou copiar o texto.</p>
-            </div>
+            // Efeito para inicializar o Firebase
+            useEffect(() => {
+                // Adicione suas credenciais do Firebase aqui
+                const firebaseConfig = {
+                  apiKey: "AIzaSyA3azW55EMYPsygwrahwzmCJlx3CIK9jUM",
+                  authDomain: "reserva-almoco-app.firebaseapp.com",
+                  projectId: "reserva-almoco-app",
+                  storageBucket: "reserva-almoco-app.firebasestorage.app",
+                  messagingSenderId: "437144604243",
+                  appId: "1:437144604243:web:9f1596dd2cd4fee4fac0a6"
+                };
 
-            <!-- Bloco da mensagem com botão de copiar -->
-            <div class="my-6">
-                <div class="bg-gray-50 p-4 rounded-t-lg border border-gray-200">
-                    <p class="text-gray-700" id="whatsapp-message"></p>
+                // Carrega os scripts do Firebase (versão 8 compatível) e inicializa
+                const appScript = document.createElement('script');
+                appScript.src = "https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js";
+                appScript.onload = () => {
+                    const firestoreScript = document.createElement('script');
+                    firestoreScript.src = "https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js";
+                    firestoreScript.onload = () => {
+                        try {
+                            // Usa a sintaxe da v8 compatível com o objeto global 'firebase'
+                            if (!window.firebase.apps.length) {
+                                window.firebase.initializeApp(firebaseConfig);
+                            }
+                            const firestoreDb = window.firebase.firestore();
+                            setDb(firestoreDb); // Guarda a instância do DB no estado
+
+                            // Configura o listener para atualizações em tempo real com a sintaxe da v8
+                            const unsubscribe = firestoreDb.collection("attendees").onSnapshot((querySnapshot) => {
+                                const attendeesData = [];
+                                querySnapshot.forEach((doc) => {
+                                    attendeesData.push({ id: doc.id, ...doc.data() });
+                                });
+                                setAttendees(attendeesData);
+                                setIsLoading(false);
+                            }, (err) => {
+                                console.error("Erro no listener do Firestore: ", err);
+                                setError("Não foi possível carregar a lista. Verifique a configuração do Firebase.");
+                                setIsLoading(false);
+                            });
+                            
+                            return () => unsubscribe();
+                        } catch (e) {
+                            console.error("Erro ao inicializar Firebase:", e);
+                            setError("Falha na inicialização do Firebase. Verifique suas credenciais no código.");
+                            setIsLoading(false);
+                        }
+                    };
+                    document.head.appendChild(firestoreScript);
+                };
+                document.head.appendChild(appScript);
+            }, []);
+
+            const handleConfirm = async () => {
+                if (!db) {
+                    alert("O banco de dados ainda não está pronto. Tente novamente em um instante.");
+                    return;
+                }
+                if (!name.trim()) {
+                    alert("Por favor, digite seu nome.");
+                    return;
+                }
+                try {
+                    const nameExists = attendees.some(attendee => attendee.name.toLowerCase() === name.trim().toLowerCase());
+                    if (nameExists) {
+                        alert("Este nome já está na lista!");
+                        return;
+                    }
+                    // Usa a sintaxe da v8 para adicionar um documento
+                    await db.collection("attendees").add({
+                        name: name.trim(),
+                        timestamp: new Date()
+                    });
+                    setName('');
+                } catch (e) {
+                    console.error("Erro ao adicionar documento: ", e);
+                    alert("Ocorreu um erro ao confirmar sua presença.");
+                }
+            };
+
+            const handleRemove = async (id) => {
+                if (window.confirm("Tem certeza que deseja remover este nome da lista?")) {
+                    try {
+                        // Usa a sintaxe da v8 para apagar um documento
+                        await db.collection("attendees").doc(id).delete();
+                    } catch (e) {
+                        console.error("Erro ao remover documento: ", e);
+                        alert("Ocorreu um erro ao remover o nome.");
+                    }
+                }
+            };
+
+            const copyList = () => {
+                const listText = `Reserva para o almoço no 12 (${attendees.length} pessoas):\n\n` +
+                                 attendees.map(a => `- ${a.name}`).join('\n');
+                navigator.clipboard.writeText(listText).then(() => alert('Lista copiada com sucesso!'), () => alert('Erro ao copiar a lista.'));
+            };
+
+            const sendToRestaurant = () => {
+                const restaurantPhone = '5511987654321'; // Substitua pelo número do restaurante
+                const listText = `Olá, gostaria de fazer uma reserva para almoço hoje, por favor.\n\nTotal de pessoas: ${attendees.length}\n\nNomes:\n` +
+                                 attendees.map(a => `- ${a.name}`).join('\n');
+                const whatsappUrl = `https://api.whatsapp.com/send?phone=${restaurantPhone}&text=${encodeURIComponent(listText)}`;
+                window.open(whatsappUrl, '_blank');
+            };
+
+            const clearList = async () => {
+                if (window.confirm("TEM CERTEZA? Isso irá apagar TODOS os nomes da lista permanentemente.")) {
+                    try {
+                        // Usa a sintaxe da v8 para apagar múltiplos documentos
+                        const querySnapshot = await db.collection("attendees").get();
+                        const batch = db.batch();
+                        querySnapshot.forEach((doc) => {
+                            batch.delete(doc.ref);
+                        });
+                        await batch.commit();
+                    } catch (e) {
+                        console.error("Erro ao limpar a lista: ", e);
+                        alert("Ocorreu um erro ao limpar a lista.");
+                    }
+                }
+            };
+
+            return (
+                <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+                    <div className="max-w-4xl mx-auto">
+                        <header className="text-center mb-8">
+                            <h1 className="text-4xl sm:text-5xl font-bold text-gray-800">Reserva para o 12 🍽️</h1>
+                            <p className="text-lg text-gray-500 mt-2">Confirme sua presença para o almoço de hoje!</p>
+                        </header>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-lg mb-8">
+                            <h2 className="text-2xl font-bold text-gray-700 mb-4">Você vai?</h2>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Digite seu nome aqui"
+                                    className="flex-grow px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                                />
+                                <button
+                                    onClick={handleConfirm}
+                                    className="bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                >
+                                    ✅ Confirmar Presença
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-lg">
+                            <h2 className="text-2xl font-bold text-gray-700 mb-4">
+                                Lista de Presença ({attendees.length} {attendees.length === 1 ? 'pessoa' : 'pessoas'})
+                            </h2>
+                            {isLoading && <p className="text-gray-500">Carregando lista...</p>}
+                            {error && <p className="text-red-500 bg-red-100 p-3 rounded-lg">{error}</p>}
+                            
+                            {!isLoading && !error && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    {attendees.length > 0 ? (
+                                        attendees.sort((a, b) => a.name.localeCompare(b.name)).map(attendee => (
+                                            <Attendee key={attendee.id} name={attendee.name} id={attendee.id} onRemove={handleRemove} />
+                                        ))
+                                    ) : (
+                                        <p className="text-gray-500 col-span-full text-center py-4">Ninguém confirmou ainda. Seja o primeiro!</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-8 bg-indigo-50 p-6 rounded-2xl shadow-lg border-2 border-dashed border-indigo-200">
+                            <h2 className="text-2xl font-bold text-indigo-800 mb-4">Painel do Organizador (Rapha)</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <button onClick={copyList} className="bg-indigo-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-600 transition">
+                                    Copiar Lista para Reserva
+                                </button>
+                                <button onClick={sendToRestaurant} className="bg-teal-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-teal-600 transition">
+                                    Enviar Reserva (WhatsApp)
+                                </button>
+                                <button onClick={clearList} className="bg-red-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-600 transition">
+                                    Limpar Lista para Amanhã
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <button id="copy-button" class="w-full bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-b-lg hover:bg-gray-300 transition flex items-center justify-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                    <span>Copiar Mensagem</span>
-                </button>
-            </div>
-
-            <div class="flex flex-col space-y-3">
-                <a id="send-whatsapp" href="#" target="_blank" class="w-full text-center bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-transform transform hover:scale-105 flex items-center justify-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.487 5.235 3.487 8.413.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.447-4.435-9.884-9.888-9.884-5.448 0-9.886 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.149-.173.198-.297.297-.495.099-.198.05-.372-.025-.521-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.521.074-.795.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.227 1.36.195 1.871.118.571-.078 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                    <span>Enviar para o Rapha</span>
-                </a>
-                <button id="back-button-confirm" class="w-full bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition">
-                    Voltar
-                </button>
-            </div>
-        </div>
-
-        <!-- Passo 3: Recusado -->
-        <div id="declined-step" class="hidden fade-in">
-             <div class="text-center">
-                <h2 class="text-2xl font-bold text-gray-800">Que pena!</h2>
-                <p class="text-gray-500 mt-2">Ok, fica para a próxima então. Tenha um bom dia!</p>
-            </div>
-             <div class="mt-6">
-                <button id="back-button-decline" class="w-full bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition">
-                    Mudei de ideia, quero ir!
-                </button>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
-        // --- Elementos do DOM ---
-        const formStep = document.getElementById('form-step');
-        const confirmationStep = document.getElementById('confirmation-step');
-        const declinedStep = document.getElementById('declined-step');
-
-        const nameInput = document.getElementById('name');
-        const nameError = document.getElementById('name-error');
-        
-        const confirmButton = document.getElementById('confirm-button');
-        const declineButton = document.getElementById('decline-button');
-        
-        const whatsappMessageEl = document.getElementById('whatsapp-message');
-        const sendWhatsappButton = document.getElementById('send-whatsapp');
-        
-        // --- NOVO ELEMENTO ---
-        const copyButton = document.getElementById('copy-button');
-
-        const backButtonConfirm = document.getElementById('back-button-confirm');
-        const backButtonDecline = document.getElementById('back-button-decline');
-
-        let currentMessage = ''; // Variável para guardar a mensagem atual
-
-        // --- Lógica da Aplicação ---
-
-        function showStep(stepToShow) {
-            formStep.classList.add('hidden');
-            confirmationStep.classList.add('hidden');
-            declinedStep.classList.add('hidden');
-            stepToShow.classList.remove('hidden');
+            );
         }
 
-        confirmButton.addEventListener('click', () => {
-            const name = nameInput.value.trim();
-
-            if (!name) {
-                nameError.classList.remove('hidden');
-                nameInput.focus();
-                return;
-            }
-            nameError.classList.add('hidden');
-
-            // IMPORTANTE: Substitua o número abaixo pelo número do Rapha.
-            const raphaPhoneNumber = '+5511942082548'; 
-
-            currentMessage = `Olá Rapha, aqui é o(a) ${name}. Confirmando minha presença para o almoço no 12 hoje! `;
-            
-            whatsappMessageEl.textContent = currentMessage;
-
-            const whatsappUrl = `https://api.whatsapp.com/send?phone=${raphaPhoneNumber}&text=${encodeURIComponent(currentMessage)}`;
-            sendWhatsappButton.href = whatsappUrl;
-
-            showStep(confirmationStep);
-        });
-
-        declineButton.addEventListener('click', () => {
-            showStep(declinedStep);
-        });
-        
-        // --- NOVA LÓGICA PARA COPIAR ---
-        copyButton.addEventListener('click', () => {
-            // Cria um elemento de texto temporário para copiar
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = currentMessage;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempTextArea);
-
-            // Feedback visual para o usuário
-            const originalButtonText = copyButton.innerHTML;
-            copyButton.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                <span>Copiado!</span>
-            `;
-
-            setTimeout(() => {
-                copyButton.innerHTML = originalButtonText;
-            }, 2000); // Volta ao texto original após 2 segundos
-        });
-
-
-        function goBackToForm() {
-            nameInput.value = '';
-            nameError.classList.add('hidden');
-            showStep(formStep);
-        }
-
-        backButtonConfirm.addEventListener('click', goBackToForm);
-        backButtonDecline.addEventListener('click', goBackToForm);
-
+        // Renderiza o componente App na div com id="root"
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
     </script>
 </body>
 </html>
