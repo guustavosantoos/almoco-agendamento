@@ -144,7 +144,7 @@
             };
 
             const sendToRestaurant = () => {
-                const restaurantPhone = '5511987654321'; // Substitua pelo número do restaurante
+                const restaurantPhone = '+5511942082548'; // Substitua pelo número do restaurante
                 const listText = `Olá, gostaria de fazer uma reserva para almoço hoje, por favor.\n\nTotal de pessoas: ${attendees.length}\n\nNomes:\n` +
                                  attendees.map(a => `- ${a.name}`).join('\n');
                 const whatsappUrl = `https://api.whatsapp.com/send?phone=${restaurantPhone}&text=${encodeURIComponent(listText)}`;
