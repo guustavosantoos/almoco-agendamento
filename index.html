@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserva para o 12</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Animação de fade-in */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md mx-auto">
+
+        <!-- Passo 1: Formulário Inicial -->
+        <div id="form-step" class="fade-in">
+            <div class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Almoço no 12? 🍽️</h1>
+                <p class="text-gray-500 mt-2">O Rapha precisa saber quem vai para fazer a reserva.</p>
+            </div>
+            
+            <div class="mb-6">
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Qual o seu nome?</label>
+                <input type="text" id="name" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Ex: João Silva">
+                <p id="name-error" class="text-red-500 text-sm mt-1 hidden">Por favor, digite seu nome.</p>
+            </div>
+
+            <div class="flex flex-col space-y-3">
+                 <button id="confirm-button" class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    ✅ Sim, eu vou!
+                </button>
+                 <button id="decline-button" class="w-full bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition">
+                    ❌ Não, hoje não
+                </button>
+            </div>
+        </div>
+
+        <!-- Passo 2: Confirmação e Envio -->
+        <div id="confirmation-step" class="hidden fade-in">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-gray-800">Beleza, confirmado!</h2>
+                <p class="text-gray-500 mt-2">Sua mensagem para o Rapha está pronta. É só clicar para enviar ou copiar o texto.</p>
+            </div>
+
+            <!-- Bloco da mensagem com botão de copiar -->
+            <div class="my-6">
+                <div class="bg-gray-50 p-4 rounded-t-lg border border-gray-200">
+                    <p class="text-gray-700" id="whatsapp-message"></p>
+                </div>
+                <button id="copy-button" class="w-full bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-b-lg hover:bg-gray-300 transition flex items-center justify-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    <span>Copiar Mensagem</span>
+                </button>
+            </div>
+
+            <div class="flex flex-col space-y-3">
+                <a id="send-whatsapp" href="#" target="_blank" class="w-full text-center bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-transform transform hover:scale-105 flex items-center justify-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.487 5.235 3.487 8.413.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.447-4.435-9.884-9.888-9.884-5.448 0-9.886 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.149-.173.198-.297.297-.495.099-.198.05-.372-.025-.521-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.521.074-.795.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.227 1.36.195 1.871.118.571-.078 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                    <span>Enviar para o Rapha</span>
+                </a>
+                <button id="back-button-confirm" class="w-full bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition">
+                    Voltar
+                </button>
+            </div>
+        </div>
+
+        <!-- Passo 3: Recusado -->
+        <div id="declined-step" class="hidden fade-in">
+             <div class="text-center">
+                <h2 class="text-2xl font-bold text-gray-800">Que pena!</h2>
+                <p class="text-gray-500 mt-2">Ok, fica para a próxima então. Tenha um bom dia!</p>
+            </div>
+             <div class="mt-6">
+                <button id="back-button-decline" class="w-full bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition">
+                    Mudei de ideia, quero ir!
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Elementos do DOM ---
+        const formStep = document.getElementById('form-step');
+        const confirmationStep = document.getElementById('confirmation-step');
+        const declinedStep = document.getElementById('declined-step');
+
+        const nameInput = document.getElementById('name');
+        const nameError = document.getElementById('name-error');
+        
+        const confirmButton = document.getElementById('confirm-button');
+        const declineButton = document.getElementById('decline-button');
+        
+        const whatsappMessageEl = document.getElementById('whatsapp-message');
+        const sendWhatsappButton = document.getElementById('send-whatsapp');
+        
+        // --- NOVO ELEMENTO ---
+        const copyButton = document.getElementById('copy-button');
+
+        const backButtonConfirm = document.getElementById('back-button-confirm');
+        const backButtonDecline = document.getElementById('back-button-decline');
+
+        let currentMessage = ''; // Variável para guardar a mensagem atual
+
+        // --- Lógica da Aplicação ---
+
+        function showStep(stepToShow) {
+            formStep.classList.add('hidden');
+            confirmationStep.classList.add('hidden');
+            declinedStep.classList.add('hidden');
+            stepToShow.classList.remove('hidden');
+        }
+
+        confirmButton.addEventListener('click', () => {
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                nameError.classList.remove('hidden');
+                nameInput.focus();
+                return;
+            }
+            nameError.classList.add('hidden');
+
+            // IMPORTANTE: Substitua o número abaixo pelo número do Rapha.
+            const raphaPhoneNumber = '+5511942082548'; 
+
+            currentMessage = `Olá Rapha, aqui é o(a) ${name}. Confirmando minha presença para o almoço no 12 hoje! �`;
+            
+            whatsappMessageEl.textContent = currentMessage;
+
+            const whatsappUrl = `https://api.whatsapp.com/send?phone=${raphaPhoneNumber}&text=${encodeURIComponent(currentMessage)}`;
+            sendWhatsappButton.href = whatsappUrl;
+
+            showStep(confirmationStep);
+        });
+
+        declineButton.addEventListener('click', () => {
+            showStep(declinedStep);
+        });
+        
+        // --- NOVA LÓGICA PARA COPIAR ---
+        copyButton.addEventListener('click', () => {
+            // Cria um elemento de texto temporário para copiar
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = currentMessage;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            // Feedback visual para o usuário
+            const originalButtonText = copyButton.innerHTML;
+            copyButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                <span>Copiado!</span>
+            `;
+
+            setTimeout(() => {
+                copyButton.innerHTML = originalButtonText;
+            }, 2000); // Volta ao texto original após 2 segundos
+        });
+
+
+        function goBackToForm() {
+            nameInput.value = '';
+            nameError.classList.add('hidden');
+            showStep(formStep);
+        }
+
+        backButtonConfirm.addEventListener('click', goBackToForm);
+        backButtonDecline.addEventListener('click', goBackToForm);
+
+    </script>
+</body>
+</html>
